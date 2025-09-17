@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/x-icon" href="gctu.ico" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QUEUEUP Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0; padding: 0;
+      background: #f0f2f5; color: #1f2937;
+      display: flex; justify-content: center; align-items: flex-start;
+      min-height: 100vh; overflow-x: hidden;
+    }
+    .container {
+      background: white; border-radius: 20px;
+      width: 92%; max-width: 1100px; min-height: 90vh;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display:flex; flex-direction:column; padding: 28px; position: relative;
+    }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding:10px 20px; }
+    .logo-container { display:flex; align-items:center; gap: 8px; }
+    .logo-image { height: 40px; }
+    .logo-text { font-weight:600; font-size:1.1rem; }
+    .logo-text small { display:block; font-weight:400; font-size:0.85rem; color:#6b7280; }
+    .icon-group { display:flex; align-items:center; gap: 8px; }
+    .btn-profile { background:#f3f4f6; border-radius:50%; width:56px; height:56px; display:flex; justify-content:center; align-items:center; border:none; cursor:pointer; }
+    .btn-logout { background:#e05656; color:#fff; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+
+    .notification-container { position: relative; }
+    .notification-bell { cursor: pointer; color: #4b5563; transition: color 0.2s; }
+    .notification-count { position: absolute; top: -5px; right: -5px; background: #e05656; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: bold; }
+    .bell-active { color: #e05656 !important; }
+
+    .section-card { background:#fff; border-radius:12px; padding:20px; margin-bottom:18px; box-shadow:0 4px 12px rgba(0,0,0,0.06); border:1px solid #e5e7eb; }
+    .profile-card { display:flex; align-items:center; gap:14px; }
+    .profile-card .icon { width:48px; height:48px; border-radius:50%; background:#f3f4f6; display:flex; justify-content:center; align-items:center; }
+    .profile-card h3 { margin:0; font-weight:600; }
+    .profile-card p { margin:0; color:#6b7280; }
+
+    .cards-grid { display:flex; gap:18px; flex-wrap:wrap; justify-content:flex-start; }
+    .card { background:#f9fafb; border-radius:12px; padding:18px; box-shadow:0 6px 18px rgba(0,0,0,0.05); cursor:pointer; transition:transform .12s, box-shadow .2s; min-width:220px; border:1px solid #e5e7eb; }
+    .card:hover { transform:translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,0.1); }
+    .card .icon-circle { width:48px; height:48px; background:#eef2ff; border-radius:50%; display:flex; justify-content:center; align-items:center; margin-bottom:8px; }
+    .card h3 { margin:6px 0 0 0; font-size:1rem; font-weight:600; }
+    .card p { color:#6b7280; font-size:0.85rem; margin-top:6px; }
+
+    .divider { border-top:1px solid #e5e7eb; margin:18px 0; }
+
+    /* Modals */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(15,23,42,0.45); display:none; align-items:center; justify-content:center; z-index:999; }
+    .modal { width:100%; max-width:720px; background:#fff; border-radius:12px; padding:20px; box-shadow:0 20px 40px rgba(0,0,0,0.2); transform: translateY(12px); max-height: 90vh; display: flex; flex-direction: column;}
+    .modal-content { overflow-y: auto; padding-right: 15px; }
+    .modal header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .close-btn { background:#e5e7eb; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
+    .form label { display:block; margin:10px 0 6px 0; color:#4b5563; font-weight:600; }
+    .form input, .form select, .form textarea { width:100%; padding:12px; border-radius:8px; border:1px solid #e5e7eb; background:#f9fafb; resize:vertical; box-sizing:border-box; }
+    .form textarea { min-height:120px; }
+    .primary { background:#5596ff; color:white; padding:10px 12px; border-radius:8px; border:none; cursor:pointer; margin-top:12px; font-weight:700; }
+    .primary.loading { opacity:0.7; pointer-events:none; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .spinner { display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;margin-right:8px;vertical-align:middle;animation:spin .9s linear infinite; }
+
+    /* Lists */
+    ul { list-style:none; padding:0; margin:0; max-width:100%; }
+    li.item { background:#f9fafb; border-radius:8px; padding:12px; margin-bottom:10px; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; border:1px solid #e5e7eb; }
+    .item-left { max-width:78%; }
+    .meta { color:#8b919d; font-size:0.9rem; margin-top:6px; }
+    .status-pill { padding:6px 10px; border-radius:999px; font-weight:700; font-size:0.85rem; white-space:nowrap; }
+    .s-Queued { background:#bfdbfe; color:#1e3a8a; }
+    .s-In\ Progress { background:#fef3c7; color:#713f12; }
+    .s-Resolved { background:#dcfce7; color:#14532d; }
+    .s-Closed { background:#e5e7eb; color:#374151; }
+
+    /* Toasts */
+    .toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display:flex; flex-direction:column; gap:10px; }
+    .toast { padding:12px 20px; border-radius:8px; color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,0.2); opacity:0; transform: translateY(8px); transition: all 260ms ease; }
+    .toast.show { opacity:1; transform: translateY(0); }
+    .toast.success { background:#28a745; } .toast.error { background:#dc3545; } .toast.info { background:#17a2b8; }
+
+    /* small helpers */
+    .muted { color:#6b7280; font-size:0.95rem; }
+
+    @media (max-width:800px){
+      .cards-grid { justify-content:center; }
+      .modal { margin: 0 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <img src="gctu.png" alt="GCTU Logo" class="logo-image">
+        <div class="logo-text">Ghana Communication <small>Technology University (GCTU)</small></div>
+      </div>
+
+      <div class="icon-group">
+        <button id="profileCardLink" class="btn-profile" title="Edit Profile">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0zM3.75 20.105a8.25 8.25 0 0 1 16.5 0 .75.75 0 0 1-.94.085 6.75 6.75 0 0 0-14.62 0 .75.75 0 0 1-.94-.085z"/></svg>
+        </button>
+
+        <div class="notification-container" title="Notifications">
+          <svg class="notification-bell" id="notificationBell" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M14.5 6.2a1.5 1.5 0 0 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+            <path fill-rule="evenodd" d="M12 2.25A6 6 0 0 0 6 8v3.684l-1.928 2.314a.75.75 0 0 0 1.054 1.115l.412-.383a.5.5 0 0 0 .154-.423v-1.127a6.742 6.742 0 0 1 2.572-5.266A4.5 4.5 0 0 1 12 5.25a4.5 4.5 0 0 1 4.5 4.5v1.127a.5.5 0 0 0 .154.423l.412.383a.75.75 0 0 0 1.054-1.115L18 11.684V8a6 6 0 0 0-6-6Zm2.25 15c.666 0 1.318-.112 1.936-.334a7.514 7.514 0 0 0 4.093-3.664.75.75 0 0 0-.798-1.077 5.964 5.964 0 0 1-3.681 2.404c-.183.045-.369.07-.55.071H9.75a6.002 6.002 0 0 1-6-6v-2.25c0-.414-.336-.75-.75-.75S2.25 8.636 2.25 9v2.25a7.502 7.502 0 0 0 7.5 7.5h4.5ZM12 21.75a2.25 2.25 0 0 1-2.25-2.25h4.5A2.25 2.25 0 0 1 12 21.75Z" clip-rule="evenodd" />
+          </svg>
+          <span id="notificationCount" class="notification-count" style="display:none;">0</span>
+        </div>
+
+        <button id="logoutBtn" class="btn-logout" title="Log out">Log out</button>
+      </div>
+    </header>
+
+    <section id="mainScreen" class="section-card">
+      <div class="profile-card">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="28" height="28"><path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0zM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.941.085 6.75 6.75 0 0 0-14.616 0 .75.75 0 0 1-.941-.085Z"/></svg>
+        </div>
+        <div>
+          <h3 id="studentNameDisplay">Loading name...</h3>
+          <p id="studentIdDisplay">Loading student ID...</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-card academic-card">
+        <h3>Academic Information</h3>
+        <p id="academicInfoDisplay">Loading...</p>
+      </div>
+
+      <div class="cards-grid" style="margin-top:12px;">
+        <div id="resultsCard" class="card" role="button" tabindex="0" title="Report a problem with your academic results">
+          <div class="icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M9 2.25a2.25 2.25 0 0 1 4.5 0h3.75A2.25 2.25 0 0 1 19.5 4.5v15a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5v-15A2.25 2.25 0 0 1 6.75 2.25H9z"/></svg>
+          </div>
+          <h3>Report Results Issue</h3>
+          <p class="muted">Report missing or incorrect grades</p>
+        </div>
+
+        <div id="complaintCard" class="card" role="button" tabindex="0" title="Make a general complaint">
+          <div class="icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M2.25 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67"/></svg>
+          </div>
+          <h3>Make a Complaint</h3>
+          <p class="muted">Report any non-academic issues</p>
+        </div>
+
+        <div id="trackComplaintsCard" class="card" role="button" tabindex="0" title="View status of your complaints">
+          <div class="icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5"/></svg>
+          </div>
+          <h3>Track Complaint</h3>
+          <p class="muted">See progress on your submitted complaints</p>
+        </div>
+
+        <div id="trackResultsCard" class="card" role="button" tabindex="0" title="View status of your results issues">
+          <div class="icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5"/></svg>
+          </div>
+          <h3>Track Results Issue</h3>
+          <p class="muted">See progress on reported results issues</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div id="modal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut,
+      signInWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      onValue,
+      get,
+      child,
+      update,
+      off
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    /*********** Replace these with your firebase project config ***********/
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIqR0b9hA9IaLhRsVtJKSSwh9NktuIIjI",
+      authDomain: "queueup-85662.firebaseapp.com",
+      databaseURL: "https://queueup-85662-default-rtdb.firebaseio.com",
+      projectId: "queueup-85662",
+      storageBucket: "queueup-85662.firebasestorage.app",
+      messagingSenderId: "647901471109",
+      appId: "1:647901471109:web:2607f4883cd1393259e4ec"
+    };
+    /************************************************************************/
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // UI elements
+    const studentNameDisplay = document.getElementById('studentNameDisplay');
+    const studentIdDisplay = document.getElementById('studentIdDisplay');
+    const academicInfoDisplay = document.getElementById('academicInfoDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const modal = document.getElementById('modal');
+    const modalContent = document.querySelector('.modal-content');
+    const toastContainer = document.getElementById('toast-container');
+    const profileCardLink = document.getElementById('profileCardLink');
+    const notificationBell = document.getElementById('notificationBell');
+    const notificationCount = document.getElementById('notificationCount');
+
+    // State
+    let currentUID = null;
+    let profile = null; // will hold {studentId, email, full_name, department, ...}
+    let complaintsListenerRef = null;
+    let resultsListenerRef = null;
+    let notificationsListenerRef = null;
+
+    /********************** UI helpers **********************/
+    function showToast(message, type='info') {
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.textContent = message;
+      toastContainer.appendChild(t);
+      setTimeout(()=> t.classList.add('show'), 20);
+      setTimeout(()=> { t.classList.remove('show'); t.addEventListener('transitionend', ()=> t.remove()); }, 3500);
+    }
+
+    function openModal(htmlContent) {
+      modalContent.innerHTML = htmlContent;
+      modalBackdrop.style.display = 'flex';
+      document.body.style.overflow = 'hidden';   // 🔒 stop background scroll
+      modalBackdrop.setAttribute('aria-hidden', 'false');
+      // attach close handler on backdrop click (but not inside modal)
+      setTimeout(() => {
+        // click outside content closes
+        modalBackdrop.addEventListener('click', backdropClickHandler);
+      }, 50);
+    }
+    function backdropClickHandler(e) {
+      if (e.target === modalBackdrop) closeModal();
+    }
+    function closeModal() {
+      modalBackdrop.style.display = 'none';
+      document.body.style.overflow = '';
+      modalBackdrop.setAttribute('aria-hidden', 'true');
+      modalContent.innerHTML = '';
+      modalBackdrop.removeEventListener('click', backdropClickHandler);
+    }
+
+    function showSpinnerOnButton(btn, show, originalText) {
+      if (!btn) return;
+      if (show) {
+        btn.dataset.orig = btn.innerHTML;
+        btn.classList.add('primary','loading');
+        btn.innerHTML = '<div class="spinner"></div> Submitting...';
+        btn.disabled = true; // Disable the button to prevent double-clicks
+      } else {
+        btn.classList.remove('loading');
+        btn.innerHTML = originalText || btn.dataset.orig || 'Submit';
+        btn.disabled = false;
+      }
+    }
+
+    /********************** auth & profile lookup **********************/
+    // Try to find user profile by many possible shapes:
+    // 1) users_by_uid/{uid} (preferred)
+    // 2) users/{studentId} (where each user object contains uid/email/studentId)
+    async function findProfileForUid(uid) {
+      if (!uid) return null;
+      try {
+        // 1) try dedicated mapping
+        const byUidSnap = await get(ref(db, `users_by_uid/${uid}`));
+        if (byUidSnap.exists()) {
+          return byUidSnap.val();
+        }
+        // 2) fallback: scan users/ to find matching uid
+        const usersSnap = await get(ref(db, `users`));
+        if (usersSnap.exists()) {
+          const allUsers = usersSnap.val();
+          for (const key of Object.keys(allUsers)) {
+            const u = allUsers[key];
+            if (u && (u.uid === uid || u.uid === uid.toString())) {
+              // prefer to return normalized object
+              return {
+                studentId: u.studentId || u.student_id || key,
+                email: u.email || u.email_address || '',
+                full_name: u.full_name || u.name || '',
+                department: u.department || ''
+              };
+            }
+          }
+        }
+      } catch (err) {
+        console.error('findProfileForUid error', err);
+      }
+      return null;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUID = user.uid;
+        // find profile
+        profile = await findProfileForUid(currentUID);
+        if (profile && profile.full_name && profile.studentId) {
+          studentNameDisplay.textContent = `Hello, ${profile.full_name}`;
+          studentIdDisplay.textContent = profile.studentId;
+          academicInfoDisplay.textContent = `${profile.department || '—'} | ${profile.academic_year || '—'} | ${profile.semester || '—'}`;
+        } else if (user.email) {
+          // fallback: show email as ID, but not "Student"
+          studentNameDisplay.textContent = `Hello, ${user.displayName || user.email.split('@')[0] || 'Student'}`;
+          studentIdDisplay.textContent = user.email;
+          academicInfoDisplay.textContent = '—';
+        } else {
+          studentNameDisplay.textContent = `Hello, Student`;
+          studentIdDisplay.textContent = 'No ID';
+          academicInfoDisplay.textContent = '—';
+        }
+        updateNotificationCount();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Logout button
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        showToast('Signed out', 'info');
+        setTimeout(()=> window.location.href = 'login.html', 700);
+      } catch (err) {
+        showToast('Sign out failed: ' + err.message, 'error');
+      }
+    });
+
+    /********************** Notification count helper **********************/
+    function updateNotificationCount() {
+      if (!currentUID) {
+        notificationCount.style.display = 'none';
+        notificationBell.classList.remove('bell-active');
+        return;
+      }
+      // Attach a live listener to notifications
+      if (notificationsListenerRef) {
+        try { off(notificationsListenerRef); } catch(e){/*noop*/ }
+      }
+      notificationsListenerRef = ref(db, `notifications/${currentUID}`);
+      onValue(notificationsListenerRef, (snap) => {
+        let count = 0;
+        if (snap.exists()) {
+          const entries = snap.val();
+          count = Object.values(entries).filter(x => !x.is_read || x.is_read === false).length;
+
+        }
+        if (count > 0) {
+          notificationCount.textContent = count;
+          notificationCount.style.display = 'flex';
+          notificationBell.classList.add('bell-active');
+        } else {
+          notificationCount.style.display = 'none';
+          notificationBell.classList.remove('bell-active');
+        }
+      }, (err) => {
+        console.error('Error fetching notifications:', err);
+      });
+    }
+
+    /********************** CLICK HANDLERS FOR NEW FEATURES **********************/
+
+    // Make Edit Profile button clickable and functional
+    profileCardLink.addEventListener('click', () => {
+      if (!profile) {
+        showToast('Profile data is not available. Try again later.', 'error');
+        return;
+      }
+      const departments = [
+        "Faculty of Computer and Information Systems",
+        "Faculty of Engineering",
+        "Faculty of Business IT"
+      ];
+      const academicYears = [
+        "Level 100",
+        "Level 200",
+        "Level 300",
+        "Level 400"
+      ];
+      const semesters = [
+        "First Semester",
+        "Second Semester"
+      ];
+
+      // Generate options HTML for Department
+      const departmentOptionsHtml = departments.map(d =>
+        `<option value="${d}" ${profile.department === d ? 'selected' : ''}>${d}</option>`
+      ).join('');
+
+      // Generate options HTML for Academic Year
+      const academicYearOptionsHtml = academicYears.map(y =>
+        `<option value="${y}" ${profile.academic_year === y ? 'selected' : ''}>${y}</option>`
+      ).join('');
+
+      // Generate options HTML for Semester
+      const semesterOptionsHtml = semesters.map(s =>
+        `<option value="${s}" ${profile.semester === s ? 'selected' : ''}>${s}</option>`
+      ).join('');
+
+      const modalHtml = `
+        <header>
+          <h2>Edit Profile</h2>
+          <button id="closeModalBtn" class="close-btn">Close</button>
+        </header>
+        <div class="form">
+          <label>Full Name</label>
+          <input type="text" id="profile-name" value="${profile.full_name || ''}" placeholder="Enter your full name" />
+          <label>Student ID</label>
+          <input type="text" id="profile-studentId" value="${profile.studentId || ''}" placeholder="Enter your student ID" />
+          <label>Department</label>
+          <select id="profile-department">
+            <option value="">Select Department</option>
+            ${departmentOptionsHtml}
+          </select>
+          <label>Academic Year</label>
+          <select id="profile-academicYear">
+            <option value="">Select Academic Year</option>
+            ${academicYearOptionsHtml}
+          </select>
+          <label>Semester</label>
+          <select id="profile-semester">
+            <option value="">Select Semester</option>
+            ${semesterOptionsHtml}
+          </select>
+          <button id="profile-submit" class="primary">Save Changes</button>
+        </div>
+      `;
+      openModal(modalHtml);
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+
+      document.getElementById('profile-submit').addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        const btn = ev.currentTarget;
+        const orig = btn.innerHTML;
+        showSpinnerOnButton(btn, true, 'Saving...');
+
+        const newProfile = {
+          full_name: document.getElementById('profile-name').value.trim(),
+          studentId: document.getElementById('profile-studentId').value.trim(),
+          department: document.getElementById('profile-department').value,
+          academic_year: document.getElementById('profile-academicYear').value,
+          semester: document.getElementById('profile-semester').value
+        };
+
+        if (!newProfile.full_name || !newProfile.studentId) {
+          showToast('Name and Student ID are required.', 'error');
+          showSpinnerOnButton(btn, false, orig);
+          return;
+        }
+
+        try {
+          // Update the profile in the database
+          await update(ref(db, `users_by_uid/${currentUID}`), newProfile);
+          profile = { ...profile, ...newProfile }; // Update local state
+          
+          // Also update the display on the main page
+          studentNameDisplay.textContent = `Hello, ${profile.full_name}`;
+          studentIdDisplay.textContent = profile.studentId;
+          academicInfoDisplay.textContent = `${profile.department || '—'} | ${profile.academic_year || '—'} | ${profile.semester || '—'}`;
+
+          showToast('Profile updated successfully!', 'success');
+          setTimeout(() => closeModal(), 700);
+        } catch (err) {
+          showToast('Error updating profile: ' + err.message, 'error');
+        } finally {
+          showSpinnerOnButton(btn, false, orig);
+        }
+      });
+    });
+
+    // Make Notifications button clickable and functional
+    notificationBell.addEventListener('click', async () => {
+      if (!currentUID) {
+        showToast('Please log in to view notifications.', 'info');
+        return;
+      }
+      const modalHtml = `
+        <header>
+          <h2>Notifications</h2>
+          <button id="closeNotificationsModal" class="close-btn">Close</button>
+        </header>
+        <div style="max-height:60vh; overflow:auto; padding-top:8px;">
+          <ul id="notificationsList"></ul>
+        </div>
+        <div style="text-align:right; margin-top:10px;">
+          <button id="markAllReadBtn" class="primary">Mark All As Read</button>
+        </div>
+      `;
+      openModal(modalHtml);
+      document.getElementById('closeNotificationsModal').addEventListener('click', closeModal);
+      document.getElementById('markAllReadBtn').addEventListener('click', markAllNotificationsAsRead);
+
+      attachNotificationsListener();
+    });
+
+    function attachNotificationsListener() {
+      const listEl = document.getElementById('notificationsList');
+      if (!currentUID) {
+        listEl.innerHTML = '<li>Please sign in to view notifications.</li>';
+        return;
+      }
+
+      const notificationsRef = ref(db, `notifications/${currentUID}`);
+      if (notificationsListenerRef) {
+        try { off(notificationsListenerRef); } catch(e){/*noop*/ }
+      }
+      notificationsListenerRef = notificationsRef;
+
+      onValue(notificationsRef, (snap) => {
+        listEl.innerHTML = '';
+        if (!snap.exists()) {
+          listEl.innerHTML = '<li class="item">No new notifications.</li>';
+          return;
+        }
+        const val = snap.val();
+        const arr = Object.entries(val).map(([id, obj]) => ({ id, ...obj }));
+        arr.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        arr.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'item';
+          if (!item.is_read) {
+            li.style.background = '#eef2ff';
+            li.style.fontWeight = '600';
+          }
+          li.innerHTML = `
+            <div class="item-left">
+              ${escapeHtml(item.message || '')}
+              <div class="meta">${new Date(item.created_at || Date.now()).toLocaleString()}</div>
+            </div>
+          `;
+          listEl.appendChild(li);
+        });
+        // Mark all as read after opening modal
+        markAllNotificationsAsRead();
+      }, (err) => {
+        listEl.innerHTML = '<li class="item">Failed to load notifications.</li>';
+        showToast('Error fetching notifications: ' + err.message, 'error');
+      });
+    }
+
+    async function markAllNotificationsAsRead() {
+      if (!currentUID) return;
+      try {
+        const notificationsRef = ref(db, `notifications/${currentUID}`);
+        const snap = await get(notificationsRef);
+        if (snap.exists()) {
+          const updates = {};
+          const entries = snap.val();
+          Object.keys(entries).forEach(key => {
+            updates[key + '/is_read'] = true;
+          });
+          await update(notificationsRef, updates);
+        }
+      } catch (err) {
+        console.error('Failed to mark notifications as read:', err);
+      }
+    }
+
+    /********************** CARD: Report Results Issue (modal form) **********************/
+    document.getElementById('resultsCard').addEventListener('click', (e) => {
+      const modalHtml = `
+        <header>
+          <h2>Report Results Issue</h2>
+          <button id="closeModalBtn" class="close-btn">Close</button>
+        </header>
+        <div class="form">
+          <label>Student ID</label>
+          <input type="text" id="ri-studentId" readonly value="${profile?.studentId || ''}" />
+
+          <label>Faculty</label>
+          <select id="ri-faculty">
+            <option value="">Select a Faculty</option>
+            <option>Faculty of Computer and Information Systems</option>
+            <option>Faculty of Engineering</option>
+            <option>Faculty of Business IT</option>
+          </select>
+
+          <label>Course Code</label>
+          <input type="text" id="ri-course" placeholder="e.g., CBT 101" />
+
+          <label>Name of Lecturer</label>
+          <input type="text" id="ri-lecturer" placeholder="e.g., Dr. Gideon Genius" />
+
+          <label>Issue Description</label>
+          <select id="ri-desc">
+            <option value="">Select an issue</option>
+            <option>Missing Grade</option>
+            <option>Discrepancy in Grade</option>
+            <option>Incorrect Course Registration</option>
+            <option>Not on Examination List</option>
+          </select>
+
+          <button id="ri-submit" class="primary">Submit Results Issue</button>
+        </div>
+      `;
+      openModal(modalHtml);
+
+      // set student id value (in case profile loaded after click)
+      const rid = document.getElementById('ri-studentId');
+      if (profile && profile.studentId) rid.value = profile.studentId;
+      // close handler
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+
+      // submit handler
+      document.getElementById('ri-submit').addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        const btn = ev.currentTarget;
+        const orig = btn.innerHTML;
+        showSpinnerOnButton(btn, true);
+
+        const payload = {
+          student_id: document.getElementById('ri-studentId').value || (profile && profile.studentId) || '',
+          faculty: document.getElementById('ri-faculty').value,
+          course_code: document.getElementById('ri-course').value.trim(),
+          lecturer_name: document.getElementById('ri-lecturer').value.trim(),
+          description: document.getElementById('ri-desc').value,
+          date_submitted: new Date().toISOString(),
+          status: 'Queued'
+        };
+
+        // validations
+        if (!payload.faculty || !payload.course_code || !payload.description) {
+          showToast('Please fill faculty, course code and issue description.', 'error');
+          showSpinnerOnButton(btn, false, orig);
+          return;
+        }
+
+        try {
+          // store under results_issues/{uid}/{pushId}
+          const resultsRefFlat = ref(db, `result_issues`);
+const newRFlat = push(resultsRefFlat); // <-- push first to get the key
+const resultsRefStudent = ref(db, `results_issues/${payload.student_id}/${newRFlat.key}`); // <-- now use the key
+const resultData = {
+  id: newRFlat.key,
+  student_id: payload.student_id,
+  faculty: payload.faculty,
+  course_code: payload.course_code,
+  lecturer_name: payload.lecturer_name,
+  description: payload.description,
+  date_submitted: payload.date_submitted,
+  status: 'Queued'
+};
+await set(newRFlat, resultData);
+await set(resultsRefStudent, resultData);
+
+
+          // add a notification
+          await push(ref(db, `notifications/${currentUID}`), {
+            message: 'Results issue submitted',
+            created_at: new Date().toISOString(),
+            is_read: false
+          });
+
+          showToast('Results issue submitted.', 'success');
+
+          // refresh any open views (if track modal open)
+          refreshResultsListIfOpen();
+
+          setTimeout(() => {
+            closeModal();
+          }, 700);
+        } catch (err) {
+          showToast('Error submitting results issue: ' + err.message, 'error');
+        } finally {
+          showSpinnerOnButton(btn, false, orig);
+          updateNotificationCount();
+        }
+      });
+    });
+
+    /********************** CARD: Make a Complaint (modal form) **********************/
+    document.getElementById('complaintCard').addEventListener('click', (e) => {
+      const modalHtml = `
+        <header>
+          <h2>Submit a Complaint</h2>
+          <button id="closeModalBtn" class="close-btn">Close</button>
+        </header>
+        <div class="form">
+          <label>Student ID</label>
+          <input type="text" id="c-studentId" readonly value="${profile?.studentId || ''}" />
+
+          <label>Complaint</label>
+          <textarea id="c-text" placeholder="Enter your complaint here..."></textarea>
+
+          <button id="c-submit" class="primary">Submit Complaint</button>
+        </div>
+      `;
+      openModal(modalHtml);
+      const closeBtn = document.getElementById('closeModalBtn');
+      closeBtn.addEventListener('click', closeModal);
+
+      const submitBtn = document.getElementById('c-submit');
+      submitBtn.addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        const orig = submitBtn.innerHTML;
+        showSpinnerOnButton(submitBtn, true);
+
+        const studentIdValue = document.getElementById('c-studentId').value || (profile && profile.studentId) || '';
+                const textValue = document.getElementById('c-text').value.trim();
+
+        if (!textValue) {
+          showToast('Please enter your complaint.', 'error');
+          showSpinnerOnButton(submitBtn, false, orig);
+          return;
+        }
+
+        try {
+          // store under complaints/{studentId}/{pushId}
+          const complaintsRefFlat = ref(db, `complaints`);
+const newComplaintFlat = push(complaintsRefFlat);
+const newComplaintStudent = ref(db, `complaints/${studentIdValue}/${newComplaintFlat.key}`);
+const complaintData = {
+  id: newComplaintFlat.key,
+  student_id: studentIdValue,
+  text: textValue,
+  date_submitted: new Date().toISOString(),
+  status: 'Queued'
+};
+await set(newComplaintFlat, complaintData);
+await set(newComplaintStudent, complaintData);
+
+
+          // add a notification
+          await push(ref(db, `notifications/${currentUID}`), {
+            message: 'Complaint submitted',
+            created_at: new Date().toISOString(),
+            is_read: false
+          });
+
+          showToast('Complaint submitted successfully.', 'success');
+
+          setTimeout(() => {
+            closeModal();
+          }, 700);
+
+        } catch (err) {
+          showToast('Error submitting complaint: ' + err.message, 'error');
+        } finally {
+          showSpinnerOnButton(submitBtn, false, orig);
+          updateNotificationCount();
+        }
+      });
+    });
+
+    /********************** CARD: Track Complaints **********************/
+    document.getElementById('trackComplaintsCard').addEventListener('click', () => {
+      if (!profile || !profile.studentId) {
+        showToast('Profile not loaded yet.', 'error');
+        return;
+      }
+
+      const modalHtml = `
+        <header>
+          <h2>Track Complaints</h2>
+          <button id="closeTrackComplaintsModal" class="close-btn">Close</button>
+        </header>
+        <div style="max-height:60vh; overflow:auto; padding-top:8px;">
+          <ul id="complaintsList"></ul>
+        </div>
+      `;
+      openModal(modalHtml);
+      document.getElementById('closeTrackComplaintsModal').addEventListener('click', closeModal);
+
+      const listEl = document.getElementById('complaintsList');
+      const complaintsRef = ref(db, `complaints/${profile.studentId}`);
+
+      if (complaintsListenerRef) off(complaintsListenerRef);
+      complaintsListenerRef = complaintsRef;
+
+      onValue(complaintsRef, (snap) => {
+        listEl.innerHTML = '';
+        if (!snap.exists()) {
+          listEl.innerHTML = '<li class="item">No complaints submitted yet.</li>';
+          return;
+        }
+        const arr = Object.entries(snap.val()).map(([id, obj]) => ({ id, ...obj }));
+        arr.sort((a,b) => new Date(b.date_submitted) - new Date(a.date_submitted));
+        arr.forEach(c => {
+          const li = document.createElement('li');
+          li.className = 'item';
+          li.innerHTML = `
+            <div class="item-left">
+              ${escapeHtml(c.text)}
+              <div class="meta">${new Date(c.date_submitted).toLocaleString()}</div>
+            </div>
+            <div class="status-pill s-${c.status.replace(/\s/g,'')}">${c.status}</div>
+            <button class="delete-btn" data-id="${c.id}" style="margin-left:12px;background:#dc3545;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">Delete</button>
+          `;
+          li.querySelector('.delete-btn').addEventListener('click', async () => {
+            try {
+              // Remove from flat path
+              await update(ref(db), { [`complaints/${c.id}`]: null });
+              // Remove from per-student path
+              await update(ref(db), { [`complaints/${profile.studentId}/${c.id}`]: null });
+              showToast('Complaint deleted.', 'success');
+              li.remove();
+            } catch (err) {
+              showToast('Failed to delete complaint: ' + err.message, 'error');
+            }
+          });
+          listEl.appendChild(li);
+        });
+      });
+    });
+
+    /********************** CARD: Track Results Issues **********************/
+    document.getElementById('trackResultsCard').addEventListener('click', () => {
+      if (!profile || !profile.studentId) {
+        showToast('Profile not loaded yet.', 'error');
+        return;
+      }
+
+      const modalHtml = `
+        <header>
+          <h2>Track Results Issues</h2>
+          <button id="closeTrackResultsModal" class="close-btn">Close</button>
+        </header>
+        <div style="max-height:60vh; overflow:auto; padding-top:8px;">
+          <ul id="resultsList"></ul>
+        </div>
+      `;
+      openModal(modalHtml);
+      document.getElementById('closeTrackResultsModal').addEventListener('click', closeModal);
+
+      refreshResultsListIfOpen();
+    });
+
+    function refreshResultsListIfOpen() {
+      if (!profile) return;
+      const listEl = document.getElementById('resultsList');
+      if (!listEl) return;
+      const resultsRef = ref(db, `results_issues/${profile.studentId}`);
+
+      if (resultsListenerRef) off(resultsListenerRef);
+      resultsListenerRef = resultsRef;
+
+      onValue(resultsRef, (snap) => {
+        listEl.innerHTML = '';
+        if (!snap.exists()) {
+          listEl.innerHTML = '<li class="item">No results issues submitted yet.</li>';
+          return;
+        }
+        const arr = Object.entries(snap.val()).map(([id,obj]) => ({ id, ...obj }));
+        arr.sort((a,b) => new Date(b.date_submitted) - new Date(a.date_submitted));
+        arr.forEach(r => {
+          const li = document.createElement('li');
+          li.className = 'item';
+          li.innerHTML = `
+            <div class="item-left">
+              <strong>${escapeHtml(r.course_code || 'Course')}</strong> - ${escapeHtml(r.description)}
+              <div class="meta">${new Date(r.date_submitted).toLocaleString()}</div>
+            </div>
+            <div class="status-pill s-${r.status.replace(/\s/g,'')}">${r.status}</div>
+            <button class="delete-btn" data-id="${r.id}" style="margin-left:12px;background:#dc3545;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">Delete</button>
+          `;
+          li.querySelector('.delete-btn').addEventListener('click', async () => {
+            try {
+              // Remove from flat path
+              await update(ref(db), { [`result_issues/${r.id}`]: null });
+              // Remove from per-student path
+              await update(ref(db), { [`results_issues/${profile.studentId}/${r.id}`]: null });
+              showToast('Result issue deleted.', 'success');
+              li.remove();
+            } catch (err) {
+              showToast('Failed to delete result issue: ' + err.message, 'error');
+            }
+          });
+          listEl.appendChild(li);
+        });
+      });
+    }
+
+    // simple helper to avoid XSS
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+    }
+
+    // Automatically log out student when they leave the tab or window
+    window.addEventListener('beforeunload', () => {
+      // This will sign out the user when they close or reload the tab/window
+      signOut(auth);
+    });
+
+    // --- Inactivity auto-logout (5 minutes of inactivity) ---
+let inactivityTimeout;
+const INACTIVITY_LIMIT = 1 * 60 * 1000; // 5 minutes
+
+function resetInactivityTimer() {
+  if (inactivityTimeout) clearTimeout(inactivityTimeout);
+  inactivityTimeout = setTimeout(() => {
+    signOut(auth).then(() => {
+      showToast('Logged out due to inactivity.', 'info');
+      setTimeout(() => window.location.href = 'login.html', 700);
+    });
+  }, INACTIVITY_LIMIT);
+}
+
+// Listen for user activity
+['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(evt =>
+  window.addEventListener(evt, resetInactivityTimer)
+);
+
+// Start the timer on page load
+resetInactivityTimer();
+  </script>
+</body>
+</html>

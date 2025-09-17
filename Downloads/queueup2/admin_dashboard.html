@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/x-icon" href="gctu.ico" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard - QUEUEUP</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+  :root {
+    --primary-color: #007bff;
+    --info-color: #17a2b8;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --muted: #6c757d;
+    --border: #e9ecef;
+    --shadow: rgba(0,0,0,0.05);
+  }
+  body.dark-mode {
+    --primary-color: #90caf9;
+    --info-color: #4dd0e1;
+    --success-color: #66bb6a;
+    --danger-color: #ef5350;
+    --bg: #181a1b;
+    --card: #23272b;
+    --muted: #b0b3b8;
+    --border: #33383d;
+    --shadow: rgba(0,0,0,0.4);
+    color: #e0e0e0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.2s, color 0.2s, box-shadow 0.2s, border 0.2s; }
+
+  body {
+    font-family: "Poppins", sans-serif;
+  padding: 0;
+    background: var(--bg);
+    color: #222;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 18px auto;
+    padding: 18px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  }
+
+  /* Navbar */
+  .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card);
+  padding: 12px 18px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px var(--shadow);
+  margin-bottom: 12px;
+  gap: 12px;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    margin-right: auto;
+  }
+
+  .logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+  }
+
+  .brand-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+
+  #logout-btn {
+    background: var(--primary-color);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease;
+    margin-left: auto;
+  }
+  #logout-btn:hover { background: #0056b3; }
+
+  /* Tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .nav-tab {
+    padding: 10px 18px;
+    border-radius: 10px 10px 0 0;
+    cursor: pointer;
+    background: transparent;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-weight: 500;
+    outline: none;
+  }
+  .nav-tab:focus {
+    box-shadow: 0 0 0 2px var(--primary-color);
+  }
+  .nav-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background: rgba(0,0,0,0.04);
+    font-weight: 700;
+  }
+
+  /* Dashboard grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 22px 18px 18px 18px;
+    box-shadow: 0 8px 32px var(--shadow);
+    margin-bottom: 12px;
+  }
+
+  .metric-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .chart-container { height: 340px; }
+
+  /* Lists */
+  .list-container { padding: 12px; }
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .list-header input,
+  .list-header select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table.list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  table.list-table th,
+  table.list-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  /* Buttons */
+  .action-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .action-btn:focus {
+    box-shadow: 0 0 0 2px var(--primary-color);
+  }
+  .done-btn { background: var(--success-color); color: #fff; }
+  .done-btn:hover { background: #218838; }
+  .in-progress-btn { background: var(--primary-color); color: #fff; }
+  .in-progress-btn:hover { background: #0056b3; }
+  .escalate-btn { background: var(--danger-color); color: #fff; }
+  .escalate-btn:hover { background: #b71c1c; }
+  .view-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .view-btn:hover { background: var(--bg); color: var(--primary-color); border-color: var(--primary-color); }
+
+  /* Modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .modal {
+    width: 100%;
+    max-width: 820px;
+    background: #fff;
+    padding: 24px 18px 18px 18px;
+    border-radius: 18px;
+    max-height: 85vh;
+    overflow: auto;
+    margin: auto;
+    position: relative;
+    top: 10vh;
+    box-shadow: 0 8px 32px var(--shadow);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+
+  /* Status badges (consistent naming) */
+  .status-badge {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    letter-spacing: 0.5px;
+  }
+  .s-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+  .s-inprogress { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+  .s-resolved { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+  .search-input { width: 320px; max-width: 100%; border: 1.5px solid var(--border); transition: border 0.2s; }
+  .search-input:focus { border: 1.5px solid var(--primary-color); box-shadow: 0 0 0 2px var(--primary-color); }
+  .small-muted { color: var(--muted); font-size: 13px; letter-spacing: 0.2px; }
+
+  @media (max-width: 900px) {
+    .chart-container { height: 240px; }
+    .list-container { overflow-x: auto; }
+  }
+</style>
+
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <div class="navbar-brand">
+        <img src="gctu.png" class="logo" alt="logo">
+        <div>
+          <div style="font-weight:700">QUEUEUP Admin</div>
+          <div style="font-size:13px; color:var(--muted)">GCTU</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button id="dark-mode-toggle" class="action-btn view-btn" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+        <button id="logout-btn" class="action-btn in-progress-btn">Log out</button>
+      </div>
+    </div>
+    <div class="nav-tabs" role="tablist">
+  <span class="nav-tab active" data-tab="dashboard">Dashboard Overview</span>
+  <span class="nav-tab" data-tab="users">User Management</span>
+  <span class="nav-tab" data-tab="complaints">Complaints</span>
+  <span class="nav-tab" data-tab="result_issues">Result Issues</span>
+    </div>
+
+    <div id="dashboard-content">
+      <div class="dashboard-grid">
+        <div class="card metric-card">
+          <h3>Total Users</h3>
+          <div id="total-users" class="value">0</div>
+        </div>
+        <div class="card metric-card">
+          <h3>Queue Now</h3>
+          <div id="queue-now" class="value">0</div>
+        </div>
+        <div class="card metric-card">
+          <h3>Pending Complaints</h3>
+          <div id="pending-complaints" class="value">0</div>
+        </div>
+        <div class="card metric-card">
+          <h3>Unresolved Result Issues</h3>
+          <div id="unresolved-result-issues" class="value">0</div>
+        </div>
+        <div class="card metric-card">
+          <h3>Completed Queues</h3>
+          <div id="completed-queues" class="value">0</div>
+        </div>
+        <div class="card metric-card">
+          <h3>Active Users Online</h3>
+          <div id="active-users" class="value">N/A</div>
+        </div>
+        <div class="card" style="grid-column:1 / -1">
+          <h3>Recent Activity</h3>
+          <div class="activity-log" style="height:160px; overflow:auto; padding-top:8px">
+            <ul id="activity-log-list" style="list-style:none; padding:0; margin:0">
+              <li class="small-muted">No recent activity.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div id="user-management-content" style="display:none;">
+      <div class="card">
+        <div class="list-header">
+          <h3>All Users <span id="user-count" class="small-muted"></span></h3>
+          <input class="search-input" id="user-search" placeholder="Search by name or ID...">
+        </div>
+        <div style="margin-top:12px; overflow:auto">
+          <table class="list-table">
+            <thead>
+              <tr>
+                <th data-sort="name">Name</th>
+                <th data-sort="studentID">Student ID</th>
+                <th data-sort="role">Role</th>
+                <th data-sort="joinDate">Join Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="user-table-body"><tr><td colspan="5" class="small-muted">Loading users...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="complaints-content" style="display:none;">
+      <div class="card">
+        <div class="list-header">
+          <h3>All Complaints <span id="complaints-count" class="small-muted"></span></h3>
+          <div style="display:flex; gap:8px">
+            <input class="search-input" id="complaints-search" placeholder="Search subject or student id...">
+            <select id="complaints-filter"><option value="all">All</option><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option></select>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; overflow:auto">
+          <table class="list-table" id="complaints-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Student</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="complaints-table-body"><tr><td colspan="6" class="small-muted">Loading complaints...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="result_issues-content" style="display:none;">
+      <div class="card">
+        <div class="list-header">
+          <h3>All Result Issues <span id="result-issues-count" class="small-muted"></span></h3>
+          <div style="display:flex; gap:8px">
+            <input class="search-input" id="result-search" placeholder="Search course or student id...">
+            <select id="result-filter"><option value="all">All</option><option value="Queued">Queued</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option></select>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; overflow:auto">
+          <table class="list-table" id="result-table">
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Student</th>
+                <th>Issue</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="result-table-body"><tr><td colspan="6" class="small-muted">Loading result issues...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop" style="display:none;">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-content"></div>
+    </div>
+  </div>
+
+  <script type="module">
+
+    // Dark mode toggle logic
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    function setDarkMode(enabled) {
+      if (enabled) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('darkMode', '1');
+        darkModeToggle.textContent = '☀️';
+        darkModeToggle.setAttribute('aria-label', 'Switch to light mode');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('darkMode', '0');
+        darkModeToggle.textContent = '🌙';
+        darkModeToggle.setAttribute('aria-label', 'Switch to dark mode');
+      }
+    }
+    darkModeToggle.addEventListener('click', () => {
+      setDarkMode(!document.body.classList.contains('dark-mode'));
+    });
+    // On load, set mode from localStorage
+    if (localStorage.getItem('darkMode') === '1') {
+      setDarkMode(true);
+    }
+    else {
+      setDarkMode(false);
+    }
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    // ---------- CONFIG ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIqR0b9hA9IaLhRsVtJKSSwh9NktuIIjI",
+      authDomain: "queueup-85662.firebaseapp.com",
+      databaseURL: "https://queueup-85662-default-rtdb.firebaseio.com",
+      projectId: "queueup-85662",
+      storageBucket: "queueup-85662.firebasestorage.app",
+      messagingSenderId: "647901471109",
+      appId: "1:647901471109:web:2607f4883cd1393259e4ec"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // ---------- UI refs ----------
+    const tabs = document.querySelectorAll('.nav-tab');
+    const dashboardContent = document.getElementById('dashboard-content');
+  // const queueContent = document.getElementById('queue-content');
+    const userManagementContent = document.getElementById('user-management-content');
+    const complaintsContent = document.getElementById('complaints-content');
+    const resultIssuesContent = document.getElementById('result_issues-content');
+
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // Dashboard elements
+    const totalUsersEl = document.getElementById('total-users');
+    const queueNowEl = document.getElementById('queue-now');
+    const pendingComplaintsEl = document.getElementById('pending-complaints');
+    const unresolvedResultIssuesEl = document.getElementById('unresolved-result-issues');
+    const completedQueuesEl = document.getElementById('completed-queues');
+    const activeUsersEl = document.getElementById('active-users');
+
+    // Queue
+  // const queueList = document.getElementById('queue-list');
+  // const queueSearchInput = document.getElementById('queue-search');
+
+    // Users
+    const userSearchInput = document.getElementById('user-search');
+    const userTableBody = document.getElementById('user-table-body');
+
+    // Complaints
+    const complaintsTableBody = document.getElementById('complaints-table-body');
+    const complaintsSearchInput = document.getElementById('complaints-search');
+    const complaintsFilterSelect = document.getElementById('complaints-filter');
+    const complaintsCountEl = document.getElementById('complaints-count');
+
+    // Result issues
+    const resultTableBody = document.getElementById('result-table-body');
+    const resultSearchInput = document.getElementById('result-search');
+    const resultFilterSelect = document.getElementById('result-filter');
+    const resultCountEl = document.getElementById('result-issues-count');
+
+    // Modals
+    const modal = document.getElementById('modal');
+    const modalInnerContent = document.getElementById('modal-inner-content');
+
+    // Charts global (declare once)
+  let queueSpeedChart = null, rolesDistributionChart = null;
+
+    // Local cache
+    let allUsersData = []; // array of {uid, ...}
+    let allQueueData = [];
+    let allComplaintsData = [];
+    let allResultIssuesData = [];
+    let allCompletedQueueData = [];
+let combinedQueueData = [];
+
+    // ---------- Auth & init ----------
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.warn('[ADMIN DEBUG] No user found, redirecting to admin.html');
+        window.location.href = 'admin.html';
+        return;
+      }
+      console.log('[ADMIN DEBUG] Logged in user:', user.uid);
+      get(ref(db, `admins/${user.uid}/isAdmin`)).then(snap => {
+        console.log('[ADMIN DEBUG] isAdmin snap.exists:', snap.exists(), 'snap.val:', snap.val());
+        if (!snap.exists() || snap.val() !== true) {
+          console.warn('[ADMIN DEBUG] Not admin or isAdmin not true, signing out in 5 seconds.');
+          setTimeout(() => {
+            signOut(auth);
+            window.location.href = 'admin.html';
+          }, 5000);
+        } else {
+          console.log('[ADMIN DEBUG] Admin check passed, initializing dashboard.');
+          initDashboard();
+          initUserManagement();
+          initComplaints();
+          initResultIssues();
+        }
+      }).catch(err => {
+        console.error('[ADMIN DEBUG] admin check error', err, 'Signing out in 5 seconds.');
+        setTimeout(() => {
+          signOut(auth);
+          window.location.href = 'admin.html';
+        }, 5000);
+      });
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth).then(() => window.location.href = 'admin.html').catch(console.error);
+    });
+
+    // Tabs behavior
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      // hide all
+
+  dashboardContent.style.display = 'none';
+  userManagementContent.style.display = 'none';
+  complaintsContent.style.display = 'none';
+  resultIssuesContent.style.display = 'none';
+
+      const tabName = tab.dataset.tab;
+  if (tabName === 'dashboard') { dashboardContent.style.display = 'block'; initCharts(); }
+  if (tabName === 'users') { userManagementContent.style.display = 'block'; renderUsers(allUsersData); }
+  if (tabName === 'complaints') { complaintsContent.style.display = 'block'; renderComplaints(allComplaintsData); }
+  if (tabName === 'result_issues') { resultIssuesContent.style.display = 'block'; renderResultIssues(allResultIssuesData); }
+    }));
+
+// ---------- Dashboard & charts ----------
+function initDashboard() {
+  // Users
+  onValue(ref(db, 'users'), (snap) => {
+    const users = snap.val() || {};
+    allUsersData = Object.entries(users).map(([uid, v]) => ({ uid, ...v }));
+    totalUsersEl.textContent = allUsersData.length;
+    // updateRolesDistribution removed (no longer needed)
+  });
+
+    // Queue (show number of unresolved complaints and result issues as 'queue now')
+    const unresolvedComplaints = allComplaintsData.filter(c => c.status === 'pending' || c.status === 'Queued').length;
+    const unresolvedResults = allResultIssuesData.filter(c => c.status === 'Queued' || c.status === 'in_progress').length;
+    queueNowEl.textContent = unresolvedComplaints + unresolvedResults;
+
+  // Complaints
+  onValue(ref(db, 'complaints'), (snap) => {
+    const complaints = snap.val() || {};
+    allComplaintsData = Object.entries(complaints).map(([id, v]) => ({ id, ...v }));
+    const pendingCount = allComplaintsData.filter(c => c.status === 'pending' || c.status === 'Queued').length;
+    pendingComplaintsEl.textContent = pendingCount;
+    complaintsCountEl.textContent = `(${allComplaintsData.length})`;
+
+  });
+
+  // Completed Queue
+  onValue(ref(db, 'completed_queue'), (snap) => {
+    const completed = snap.val() || {};
+    allCompletedQueueData = Object.entries(completed).map(([id, v]) => ({ id, ...v }));
+  completedQueuesEl.textContent = Object.keys(completed).length;
+  });
+
+  // Result Issues
+  onValue(ref(db, 'result_issues'), (snap) => {
+    const res = snap.val() || {};
+    allResultIssuesData = Object.entries(res).map(([id, v]) => ({ id, ...v }));
+    const unresolvedCount = allResultIssuesData.filter(c => c.status === 'Queued' || c.status === 'in_progress').length;
+    unresolvedResultIssuesEl.textContent = unresolvedCount;
+    resultCountEl.textContent = `(${allResultIssuesData.length})`;
+  });
+
+  // No more queue or complaint charts
+  setupRealtimeActivityLog();
+}
+
+
+    // No more queue or complaint charts
+
+
+
+    // activity log & notification-like entries
+    function addLog(message) {
+      const list = document.getElementById('activity-log-list');
+      if (!list) return;
+      const li = document.createElement('li');
+      li.className = 'small-muted';
+      const t = new Date().toLocaleString();
+      li.innerHTML = `<strong>${message}</strong> <div style="font-size:12px;color:var(--muted)">${t}</div>`;
+      // append (show all activities, not just complaints)
+      list.appendChild(li);
+      // keep max 50
+      while (list.children.length > 50) list.removeChild(list.firstChild);
+    }
+
+    function setupRealtimeActivityLog(){
+      // Only log new complaints
+      onValue(ref(db,'complaints'), (snap) => {
+        const obj = snap.val() || {};
+        const arr = Object.entries(obj).map(([id, v]) => ({ id, ...v }));
+        const oldIds = allComplaintsData.map(x => x.id);
+        arr.forEach(item => { if (!oldIds.includes(item.id)) addLog(`New complaint: ${item.subject || item.description || 'Complaint'}`); });
+        allComplaintsData = arr;
+      });
+    }
+
+    // All queue logic removed
+
+    // ---------- User management ----------
+    function initUserManagement(){
+      onValue(ref(db,'users'), (snap)=> {
+        const users = snap.val() || {};
+        allUsersData = Object.entries(users).map(([uid, v]) => ({ uid, ...v }));
+        renderUsers(allUsersData);
+      });
+      userSearchInput.addEventListener('input', ()=> renderUsers(allUsersData));
+    }
+
+    function renderUsers(users){
+      userTableBody.innerHTML='';
+      const term = (userSearchInput.value||'').toLowerCase();
+      const filtered = users.filter(u => {
+        const name = u.name || u.full_name || '';
+        const sid = u.studentID || u.studentId || '';
+        return name.toLowerCase().includes(term) || (sid+'').toLowerCase().includes(term);
+      });
+      document.getElementById('user-count').textContent = `(${filtered.length})`;
+      if (!filtered.length) {
+        userTableBody.innerHTML = '<tr><td colspan="5" class="small-muted">No users found.</td></tr>'; return;
+      }
+      filtered.forEach(u=>{
+        const join = u.timestamp ? new Date(u.timestamp).toLocaleDateString() : 'N/A';
+        const name = u.name || u.full_name || 'N/A';
+        const sid = u.studentID || u.studentId || 'N/A';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(sid)}</td><td>${escapeHtml(u.role||'Student')}</td><td>${join}</td><td><button class="action-btn view-btn" data-uid="${u.uid}">View</button></td>`;
+        userTableBody.appendChild(tr);
+      });
+      userTableBody.querySelectorAll('.view-btn').forEach(b=> b.addEventListener('click', e=> showStudentProfileModal(e.currentTarget.dataset.uid)));
+    }
+
+   // ---------- Complaints management ----------
+function initComplaints(){
+  onValue(ref(db,'complaints'), (snap) => {
+    const obj = snap.val() || {};
+    // complaints are already flat
+    allComplaintsData = Object.entries(obj).map(([id, v]) => ({ id, ...v }));
+    renderComplaints(allComplaintsData);
+  });
+  complaintsSearchInput.addEventListener('input', ()=> renderComplaints(allComplaintsData));
+  complaintsFilterSelect.addEventListener('change', ()=> renderComplaints(allComplaintsData));
+}
+
+function renderComplaints(arr){
+  const term = (complaintsSearchInput.value||'').toLowerCase();
+  const filter = complaintsFilterSelect.value;
+  
+  // Remove duplicates: keep only one complaint per id, prefer those with a real student_id
+  const uniqueMap = {};
+  arr.forEach(item => {
+    if (!uniqueMap[item.id] || (item.student_id && item.student_id !== 'Unknown')) {
+      uniqueMap[item.id] = item;
+    }
+  });
+  const filtered = Object.values(uniqueMap).filter(item => {
+    // Optionally, skip items with student_id 'Unknown'
+    if (!item.student_id || item.student_id === 'Unknown') return false;
+    const subject = (item.subject || item.description || '').toLowerCase();
+    const sid = (item.student_id || '').toString().toLowerCase();
+    const matches = subject.includes(term) || sid.includes(term);
+    const status = (item.status||'').toLowerCase();
+    const statusMatch = (filter==='all') || (status === filter) || (filter==='pending' && (status==='pending' || status==='queued'));
+    return matches && statusMatch;
+  });
+
+  complaintsTableBody.innerHTML='';
+  complaintsCountEl.textContent = `(${filtered.length})`;
+
+  if (!filtered.length) {
+    complaintsTableBody.innerHTML = '<tr><td colspan="6" class="small-muted">No complaints found.</td></tr>';
+    return;
+  }
+
+  filtered.sort((a,b)=> (b.date_submitted||0)-(a.date_submitted||0));
+
+  filtered.forEach(c=>{
+    const date = c.date_submitted ? new Date(c.date_submitted).toLocaleString() : 'N/A';
+    const statusClass = `s-${(c.status||'pending').replace(/\s+/g,'_')}`;
+    const stu = c.student_id || 'Unknown';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(c.subject||c.description||'Complaint')}</td>
+      <td>${escapeHtml(stu)}</td>
+      <td>${escapeHtml(c.type || 'General')}</td>
+      <td><span class="status-badge ${statusClass}">${escapeHtml(c.status||'pending')}</span></td>
+      <td>${escapeHtml(date)}</td>
+      <td>
+        <button class="action-btn view-btn">View</button>
+        <button class="action-btn in-progress-btn" data-action="in_progress" data-id="${c.id}" data-student="${stu}">In Progress</button>
+        <button class="action-btn done-btn" data-action="resolved" data-id="${c.id}" data-student="${stu}">Resolve</button>
+        <button class="action-btn escalate-btn" data-action="delete" data-id="${c.id}" data-student="${stu}">Delete</button>
+      </td>`;
+    // Attach the complaint object to the view button for modal
+    tr.querySelector('.view-btn').addEventListener('click', () => showComplaintModal(c));
+    complaintsTableBody.appendChild(tr);
+  });
+
+  complaintsTableBody.querySelectorAll('.action-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const id = e.currentTarget.dataset.id;
+      const action = e.currentTarget.dataset.action;
+      const studentId = btn.dataset.student;
+      if (action==='view') showComplaintModal(id);
+      else if (action==='delete') deleteComplaint(id, studentId);
+      else setComplaintStatus(id, studentId, action);
+    });
+  });
+}
+
+function setComplaintStatus(complaintId, studentId, newStatus) {
+  // Update flat path
+  update(ref(db, `complaints/${complaintId}`), { status: newStatus });
+  // Update per-student path
+  if (studentId) {
+    get(ref(db, `complaints/${studentId}`)).then(snap => {
+      if (snap.exists()) {
+        Object.entries(snap.val()).forEach(([pushId, obj]) => {
+          if (obj && obj.id === complaintId) {
+            update(ref(db, `complaints/${studentId}/${pushId}`), { status: newStatus });
+          }
+        });
+      }
+    });
+  }
+}
+
+function deleteComplaint(complaintId, studentId) {
+  // Remove from flat path
+  update(ref(db), {
+    [`complaints/${complaintId}`]: null
+  });
+  // Remove from per-student path
+  if (studentId) {
+    get(ref(db, `complaints/${studentId}`)).then(snap => {
+      if (snap.exists()) {
+        Object.entries(snap.val()).forEach(([pushId, obj]) => {
+          if (obj && obj.id === complaintId) {
+            update(ref(db), { [`complaints/${studentId}/${pushId}`]: null });
+          }
+        });
+      }
+    });
+  }
+}
+
+
+    // ---------- Result Issues management ----------
+function initResultIssues(){
+  onValue(ref(db, 'result_issues'), (snap) => {
+    const obj = snap.val() || {};
+    // already flat
+    allResultIssuesData = Object.entries(obj).map(([id, v]) => ({ id, ...v }));
+    renderResultIssues(allResultIssuesData);
+  });
+  resultSearchInput.addEventListener('input', () => renderResultIssues(allResultIssuesData));
+  resultFilterSelect.addEventListener('change', () => renderResultIssues(allResultIssuesData));
+}
+
+function renderResultIssues(arr){
+  const term = (resultSearchInput.value||'').toLowerCase();
+  const filter = resultFilterSelect.value;
+
+  const filtered = arr.filter(item => {
+    const course = (item.course_code || '').toLowerCase();
+    const sid = (item.student_id || '').toLowerCase();
+    const matches = course.includes(term) || sid.includes(term);
+    const status = (item.status||'').toLowerCase();
+    const statusMatch = (filter==='all') || (status === filter);
+    return matches && statusMatch;
+  });
+
+  resultTableBody.innerHTML = '';
+  resultCountEl.textContent = `(${filtered.length})`;
+
+  if (!filtered.length) {
+    resultTableBody.innerHTML = '<tr><td colspan="6" class="small-muted">No result issues found.</td></tr>';
+    return;
+  }
+
+  filtered.sort((a,b)=> (b.date_submitted||0)-(a.date_submitted||0));
+
+  filtered.forEach(issue => {
+    const date = issue.date_submitted ? new Date(issue.date_submitted).toLocaleString() : 'N/A';
+    const statusClass = `s-${(issue.status||'Queued').replace(/\s+/g,'_')}`;
+    const stu = issue.student_id || 'Unknown';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(issue.course_code||'N/A')}</td>
+      <td>${escapeHtml(stu)}</td>
+      <td>${escapeHtml(issue.description||'N/A')}</td>
+      <td><span class="status-badge ${statusClass}">${escapeHtml(issue.status||'Queued')}</span></td>
+      <td>${escapeHtml(date)}</td>
+      <td>
+        <button class="action-btn view-btn">View</button>
+        <button class="action-btn in-progress-btn" data-action="in_progress" data-id="${issue.id}" data-student="${stu}">In Progress</button>
+        <button class="action-btn done-btn" data-action="resolved" data-id="${issue.id}" data-student="${stu}">Resolve</button>
+        <button class="action-btn escalate-btn" data-action="delete" data-id="${issue.id}" data-student="${stu}">Delete</button>
+      </td>`;
+    tr.querySelector('.view-btn').addEventListener('click', () => showResultIssueModal(issue));
+    resultTableBody.appendChild(tr);
+  });
+
+  resultTableBody.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const id = e.currentTarget.dataset.id;
+      const action = e.currentTarget.dataset.action;
+      const studentId = btn.dataset.student;
+      if (action === 'view') showResultIssueModal(id);
+      else if (action === 'delete') deleteResultIssue(id, studentId);
+      else setResultIssueStatus(id, studentId, action);
+    });
+  });
+}
+
+function setResultIssueStatus(issueId, studentId, newStatus) {
+  // Update flat path
+  update(ref(db, `result_issues/${issueId}`), { status: newStatus });
+  // Update per-student path
+  if (studentId) {
+    get(ref(db, `results_issues/${studentId}`)).then(snap => {
+      if (snap.exists()) {
+        Object.entries(snap.val()).forEach(([pushId, obj]) => {
+          if (obj && obj.id === issueId) {
+            update(ref(db, `results_issues/${studentId}/${pushId}`), { status: newStatus });
+          }
+        });
+      }
+    });
+  }
+}
+
+function deleteResultIssue(issueId, studentId) {
+  // Remove from flat path
+  update(ref(db), {
+    [`result_issues/${issueId}`]: null
+  });
+  // Remove from per-student path
+  if (studentId) {
+    get(ref(db, `results_issues/${studentId}`)).then(snap => {
+      if (snap.exists()) {
+        Object.entries(snap.val()).forEach(([pushId, obj]) => {
+          // Use id field for matching
+          if (obj && obj.id === issueId) {
+            update(ref(db), { [`results_issues/${studentId}/${pushId}`]: null });
+          }
+        });
+      }
+    });
+  }
+}
+
+
+    // ---------- Modals ----------
+    function openModal(htmlContent) {
+      const modalBackdrop = document.getElementById('modalBackdrop');
+      const modalContent = modalBackdrop.querySelector('.modal-content');
+      modalContent.innerHTML = htmlContent;
+      modalBackdrop.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      modalBackdrop.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+        modalBackdrop.addEventListener('click', backdropClickHandler);
+      }, 50);
+    }
+    function backdropClickHandler(e) {
+      const modalBackdrop = document.getElementById('modalBackdrop');
+      if (e.target === modalBackdrop) closeModal();
+    }
+    function closeModal() {
+      const modalBackdrop = document.getElementById('modalBackdrop');
+      const modalContent = modalBackdrop.querySelector('.modal-content');
+      modalBackdrop.style.display = 'none';
+      document.body.style.overflow = '';
+      modalBackdrop.setAttribute('aria-hidden', 'true');
+      modalContent.innerHTML = '';
+      modalBackdrop.removeEventListener('click', backdropClickHandler);
+    }
+    window.closeModal = closeModal;
+
+    function showComplaintModal(complaint) {
+      const html = `
+        <header>
+          <h2>Complaint Details</h2>
+          <button onclick="closeModal()" class="close-btn">Close</button>
+        </header>
+        <div>
+          <strong>Student ID:</strong> ${escapeHtml(complaint.student_id)}<br>
+          <strong>Complaint:</strong> ${escapeHtml(complaint.text)}<br>
+          <strong>Status:</strong> ${escapeHtml(complaint.status)}<br>
+          <strong>Date Submitted:</strong> ${complaint.date_submitted ? new Date(complaint.date_submitted).toLocaleString() : ''}
+        </div>
+      `;
+      openModal(html);
+    }
+    window.showComplaintModal = showComplaintModal;
+
+    function showResultIssueModal(issue) {
+      const html = `
+        <header>
+          <h2>Result Issue Details</h2>
+          <button onclick="closeModal()" class="close-btn">Close</button>
+        </header>
+        <div>
+          <strong>Student ID:</strong> ${escapeHtml(issue.student_id)}<br>
+          <strong>Faculty:</strong> ${escapeHtml(issue.faculty)}<br>
+          <strong>Course Code:</strong> ${escapeHtml(issue.course_code)}<br>
+          <strong>Lecturer:</strong> ${escapeHtml(issue.lecturer_name)}<br>
+          <strong>Description:</strong> ${escapeHtml(issue.description)}<br>
+          <strong>Status:</strong> ${escapeHtml(issue.status)}<br>
+          <strong>Date Submitted:</strong> ${issue.date_submitted ? new Date(issue.date_submitted).toLocaleString() : ''}
+        </div>
+      `;
+      openModal(html);
+    }
+    window.showResultIssueModal = showResultIssueModal;
+
+    function showStudentProfileModal(uid) {
+      get(ref(db, `users_by_uid/${uid}`)).then(snap => {
+        if (!snap.exists()) {
+          openModal('<div style="padding:24px">No profile found for this user.</div>');
+          return;
+        }
+        const u = snap.val();
+        const html = `
+          <div class="modal-header">
+            <h3>Student Profile</h3>
+            <button onclick="closeModal()" class="action-btn view-btn">Close</button>
+          </div>
+          <div>
+            <strong>Name:</strong> ${escapeHtml(u.full_name || u.name || '')}<br>
+            <strong>Student ID:</strong> ${escapeHtml(u.studentId || u.studentID || '')}<br>
+            <strong>Department:</strong> ${escapeHtml(u.department || '')}<br>
+            <strong>Academic Year:</strong> ${escapeHtml(u.academic_year || '')}<br>
+            <strong>Semester:</strong> ${escapeHtml(u.semester || '')}<br>
+            <strong>Email:</strong> ${escapeHtml(u.email || '')}
+          </div>
+        `;
+        openModal(html);
+      });
+    }
+    window.showStudentProfileModal = showStudentProfileModal;
+
+    // utility to prevent XSS
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    // ---------- Dashboard logic ----------
+    // ...existing dashboard logic (initDashboard, renderComplaints, renderResultIssues, etc.)
+
+  </script>
+</body>
+</html>
