@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  margin: auto;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Custom styles for admin dashboard */
+.admin-dashboard {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-queued {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-in_progress {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-resolved {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-deleted {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-inactive {
+  background-color: #e2e3e5;
+  color: #495057;
+}
+
+/* Modal content styling */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px 18px;
+  margin: 16px 0;
+}
+
+.detail-section {
+  margin: 16px 0;
+}
+
+.admin-logs {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+/* Admin Management Styles */
+.admin-management-section {
+  margin-top: 24px;
+}
+
+.create-admin-form {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.admin-role-badge {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-superadmin {
+  background-color: #6f42c1;
+  color: white;
+}
+
+.role-hod {
+  background-color: #fd7e14;
+  color: white;
+}
+
+.role-exam-officer {
+  background-color: #20c997;
+  color: white;
+}
+
+.role-admin {
+  background-color: #6c757d;
+  color: white;
+}
