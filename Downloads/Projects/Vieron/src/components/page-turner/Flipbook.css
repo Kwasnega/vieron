@@ -1,0 +1,106 @@
+.flipbook-container {
+  width: 90vw;
+  height: 80vh;
+  max-width: 1131px;
+  max-height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease-in-out;
+}
+
+.flipbook {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  perspective: 2500px;
+  filter: drop-shadow(0 20px 25px hsla(var(--primary) / 0.2)) drop-shadow(0 0 8px hsla(var(--accent) / 0.1));
+}
+
+.sheet {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  top: 0;
+  right: 0;
+  transform-style: preserve-3d;
+  transform-origin: left;
+  transition: transform 0.8s cubic-bezier(0.17, 0.82, 0.26, 0.99);
+  border-radius: 8px;
+  will-change: transform;
+}
+
+.sheet.turned {
+  transform: rotateY(-180deg);
+}
+
+.page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.page-front {
+  border-radius: 0 8px 8px 0;
+}
+
+.page-back {
+  transform: rotateY(180deg);
+  border-radius: 8px 0 0 8px;
+}
+
+.sheet:first-child .page-front {
+  border-radius: 8px;
+}
+
+.sheet:first-child.turned .page-front {
+  border-radius: 0 8px 8px 0;
+}
+
+.sheet:last-child.turned .page-back {
+  border-radius: 8px;
+}
+
+.page-front::after, .page-back::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 100px;
+  height: 100%;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+
+.page-front::after {
+  left: 0;
+  background: linear-gradient(to right, hsla(0, 0%, 0%, 0.2) 0%, hsla(0, 0%, 0%, 0) 100%);
+  opacity: 0;
+}
+
+.sheet.turned .page-front::after {
+  opacity: 1;
+}
+
+.page-back::after {
+  right: 0;
+  background: linear-gradient(to left, hsla(0, 0%, 0%, 0.2) 0%, hsla(0, 0%, 0%, 0) 100%);
+  opacity: 1;
+}
+
+.sheet.turned .page-back::after {
+  opacity: 0;
+}
